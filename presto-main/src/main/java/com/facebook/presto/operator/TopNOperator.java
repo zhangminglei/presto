@@ -15,6 +15,7 @@ package com.facebook.presto.operator;
 
 import com.facebook.presto.memory.context.LocalMemoryContext;
 import com.facebook.presto.spi.Page;
+import com.facebook.presto.spi.block.Block;
 import com.facebook.presto.spi.block.SortOrder;
 import com.facebook.presto.spi.type.Type;
 import com.facebook.presto.sql.planner.plan.PlanNodeId;
@@ -31,6 +32,9 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Returns the top N rows from the source sorted according to the specified ordering in the keyChannelIndex channel.
+ * <p>
+ * This operator supports limit offset,limit functionality. For example: a sql query `select col1 from table order by col2 desc limit offset,limit`
+ * offset means the dropped rows from the returned table, whereas limit means the needing rows in that table.
  */
 public class TopNOperator
         implements Operator
@@ -41,7 +45,8 @@ public class TopNOperator
         private final int operatorId;
         private final PlanNodeId planNodeId;
         private final List<Type> sourceTypes;
-        private final int n;
+        private final int offset;
+        private final int limit;
         private final List<Integer> sortChannels;
         private final List<SortOrder> sortOrders;
         private boolean closed;
@@ -50,14 +55,16 @@ public class TopNOperator
                 int operatorId,
                 PlanNodeId planNodeId,
                 List<? extends Type> types,
-                int n,
+                int offset,
+                int limit,
                 List<Integer> sortChannels,
                 List<SortOrder> sortOrders)
         {
             this.operatorId = operatorId;
             this.planNodeId = requireNonNull(planNodeId, "planNodeId is null");
             this.sourceTypes = ImmutableList.copyOf(requireNonNull(types, "types is null"));
-            this.n = n;
+            this.offset = offset;
+            this.limit = limit;
             this.sortChannels = ImmutableList.copyOf(requireNonNull(sortChannels, "sortChannels is null"));
             this.sortOrders = ImmutableList.copyOf(requireNonNull(sortOrders, "sortOrders is null"));
         }
@@ -70,7 +77,8 @@ public class TopNOperator
             return new TopNOperator(
                     operatorContext,
                     sourceTypes,
-                    n,
+                    offset,
+                    limit,
                     sortChannels,
                     sortOrders);
         }
@@ -84,7 +92,7 @@ public class TopNOperator
         @Override
         public OperatorFactory duplicate()
         {
-            return new TopNOperatorFactory(operatorId, planNodeId, sourceTypes, n, sortChannels, sortOrders);
+            return new TopNOperatorFactory(operatorId, planNodeId, sourceTypes, offset, limit, sortChannels, sortOrders);
         }
     }
 
@@ -95,19 +103,23 @@ public class TopNOperator
     private boolean finishing;
 
     private Iterator<Page> outputIterator;
+    private int offset;
 
     public TopNOperator(
             OperatorContext operatorContext,
             List<Type> types,
-            int n,
+            int offset,
+            int limit,
             List<Integer> sortChannels,
             List<SortOrder> sortOrders)
     {
         this.operatorContext = requireNonNull(operatorContext, "operatorContext is null");
         this.localUserMemoryContext = operatorContext.localUserMemoryContext();
-        checkArgument(n >= 0, "n must be positive");
+        checkArgument(offset >= 0, "offset must be positive");
+        this.offset = offset;
+        checkArgument(limit >= 0, "limit must be positive");
 
-        if (n == 0) {
+        if (limit == 0) {
             finishing = true;
             outputIterator = emptyIterator();
         }
@@ -115,7 +127,8 @@ public class TopNOperator
             topNBuilder = new GroupedTopNBuilder(
                     types,
                     new SimplePageWithPositionComparator(types, sortChannels, sortOrders),
-                    n,
+                    offset,
+                    limit,
                     false,
                     new NoChannelGroupByHash());
         }
@@ -175,6 +188,27 @@ public class TopNOperator
             outputIterator = emptyIterator();
         }
         updateMemoryReservation();
+
+        int positionCount = output.getPositionCount();
+        if (offset >= positionCount) {
+            offset -= positionCount;
+            output = null;
+        }
+        else {
+            if (offset == 0) {
+                return output;
+            }
+            else {
+                int remainingInPage = output.getPositionCount() - offset;
+                Block[] blocks = new Block[output.getChannelCount()];
+                for (int channel = 0; channel < output.getChannelCount(); channel++) {
+                    Block block = output.getBlock(channel);
+                    blocks[channel] = block.getRegion(offset, remainingInPage);
+                }
+                output = new Page(remainingInPage, blocks);
+                offset = 0;
+            }
+        }
         return output;
     }
 

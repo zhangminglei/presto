@@ -59,6 +59,7 @@ Keyword                        SQL:2016      SQL-92
 ``NORMALIZE``                  reserved
 ``NOT``                        reserved      reserved
 ``NULL``                       reserved      reserved
+``OFFSET``                     reserved      reserved
 ``ON``                         reserved      reserved
 ``OR``                         reserved      reserved
 ``ORDER``                      reserved      reserved

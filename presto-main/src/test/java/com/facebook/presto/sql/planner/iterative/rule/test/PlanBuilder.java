@@ -201,6 +201,7 @@ public class PlanBuilder
         return new TopNNode(
                 idAllocator.getNextId(),
                 source,
+                0,
                 count,
                 new OrderingScheme(
                         orderBy,

@@ -857,15 +857,15 @@ class QueryPlanner
 
     private PlanBuilder sort(PlanBuilder subPlan, Query node)
     {
-        return sort(subPlan, node.getOrderBy(), node.getLimit(), analysis.getOrderByExpressions(node));
+        return sort(subPlan, node.getOrderBy(), node.getOffset(), node.getLimit(), analysis.getOrderByExpressions(node));
     }
 
     private PlanBuilder sort(PlanBuilder subPlan, QuerySpecification node)
     {
-        return sort(subPlan, node.getOrderBy(), node.getLimit(), analysis.getOrderByExpressions(node));
+        return sort(subPlan, node.getOrderBy(), node.getOffset(), node.getLimit(), analysis.getOrderByExpressions(node));
     }
 
-    private PlanBuilder sort(PlanBuilder subPlan, Optional<OrderBy> orderBy, Optional<String> limit, List<Expression> orderByExpressions)
+    private PlanBuilder sort(PlanBuilder subPlan, Optional<OrderBy> orderBy, Optional<String> offset, Optional<String> limit, List<Expression> orderByExpressions)
     {
         if (!orderBy.isPresent()) {
             return subPlan;
@@ -888,7 +888,7 @@ class QueryPlanner
         PlanNode planNode;
         OrderingScheme orderingScheme = new OrderingScheme(orderBySymbols.build(), orderings);
         if (limit.isPresent() && !limit.get().equalsIgnoreCase("all")) {
-            planNode = new TopNNode(idAllocator.getNextId(), subPlan.getRoot(), Long.parseLong(limit.get()), orderingScheme, TopNNode.Step.SINGLE);
+            planNode = new TopNNode(idAllocator.getNextId(), subPlan.getRoot(), Long.parseLong(offset.get()), Long.parseLong(limit.get()), orderingScheme, TopNNode.Step.SINGLE);
         }
         else {
             planNode = new SortNode(idAllocator.getNextId(), subPlan.getRoot(), orderingScheme);
@@ -899,20 +899,21 @@ class QueryPlanner
 
     private PlanBuilder limit(PlanBuilder subPlan, Query node)
     {
-        return limit(subPlan, node.getOrderBy(), node.getLimit());
+        return limit(subPlan, node.getOrderBy(), node.getOffset(), node.getLimit());
     }
 
     private PlanBuilder limit(PlanBuilder subPlan, QuerySpecification node)
     {
-        return limit(subPlan, node.getOrderBy(), node.getLimit());
+        return limit(subPlan, node.getOrderBy(), node.getOffset(), node.getLimit());
     }
 
-    private PlanBuilder limit(PlanBuilder subPlan, Optional<OrderBy> orderBy, Optional<String> limit)
+    private PlanBuilder limit(PlanBuilder subPlan, Optional<OrderBy> orderBy, Optional<String> offset, Optional<String> limit)
     {
         if (!orderBy.isPresent() && limit.isPresent()) {
             if (!limit.get().equalsIgnoreCase("all")) {
+                long offsetValue = Long.parseLong(offset.orElse("0"));
                 long limitValue = Long.parseLong(limit.get());
-                subPlan = subPlan.withNewRoot(new LimitNode(idAllocator.getNextId(), subPlan.getRoot(), limitValue, false));
+                subPlan = subPlan.withNewRoot(new LimitNode(idAllocator.getNextId(), subPlan.getRoot(), offsetValue, limitValue, false));
             }
         }
 

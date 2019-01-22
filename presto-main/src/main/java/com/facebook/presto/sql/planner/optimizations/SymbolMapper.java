@@ -133,7 +133,8 @@ public class SymbolMapper
         return new TopNNode(
                 newNodeId,
                 source,
-                node.getCount(),
+                node.getOffset(),
+                node.getLimit(),
                 new OrderingScheme(symbols.build(), orderings.build()),
                 node.getStep());
     }

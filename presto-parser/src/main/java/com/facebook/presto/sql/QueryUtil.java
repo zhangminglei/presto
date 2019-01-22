@@ -171,6 +171,7 @@ public final class QueryUtil
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty()));
     }
 
@@ -196,10 +197,10 @@ public final class QueryUtil
 
     public static Query simpleQuery(Select select, Relation from, Optional<Expression> where, Optional<OrderBy> orderBy)
     {
-        return simpleQuery(select, from, where, Optional.empty(), Optional.empty(), orderBy, Optional.empty());
+        return simpleQuery(select, from, where, Optional.empty(), Optional.empty(), orderBy, Optional.empty(), Optional.empty());
     }
 
-    public static Query simpleQuery(Select select, Relation from, Optional<Expression> where, Optional<GroupBy> groupBy, Optional<Expression> having, Optional<OrderBy> orderBy, Optional<String> limit)
+    public static Query simpleQuery(Select select, Relation from, Optional<Expression> where, Optional<GroupBy> groupBy, Optional<Expression> having, Optional<OrderBy> orderBy, Optional<String> offset, Optional<String> limit)
     {
         return query(new QuerySpecification(
                 select,
@@ -208,6 +209,7 @@ public final class QueryUtil
                 groupBy,
                 having,
                 orderBy,
+                offset,
                 limit));
     }
 
@@ -232,6 +234,7 @@ public final class QueryUtil
         return new Query(
                 Optional.empty(),
                 body,
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty());
     }

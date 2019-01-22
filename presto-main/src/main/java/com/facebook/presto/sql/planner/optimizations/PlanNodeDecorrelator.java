@@ -146,7 +146,7 @@ public class PlanNodeDecorrelator
         public Optional<DecorrelationResult> visitLimit(LimitNode node, Void context)
         {
             Optional<DecorrelationResult> childDecorrelationResultOptional = lookup.resolve(node.getSource()).accept(this, null);
-            if (!childDecorrelationResultOptional.isPresent() || node.getCount() == 0) {
+            if (!childDecorrelationResultOptional.isPresent() || node.getLimit() == 0) {
                 return Optional.empty();
             }
 
@@ -155,7 +155,7 @@ public class PlanNodeDecorrelator
                 return childDecorrelationResultOptional;
             }
 
-            if (node.getCount() != 1) {
+            if (node.getLimit() != 1) {
                 return Optional.empty();
             }
 

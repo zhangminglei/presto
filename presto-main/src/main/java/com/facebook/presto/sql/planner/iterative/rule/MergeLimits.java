@@ -46,7 +46,7 @@ public class MergeLimits
                 new LimitNode(
                         parent.getId(),
                         child.getSource(),
-                        Math.min(parent.getCount(), child.getCount()),
+                        Math.min(parent.getLimit(), child.getLimit()),
                         parent.isPartial()));
     }
 }

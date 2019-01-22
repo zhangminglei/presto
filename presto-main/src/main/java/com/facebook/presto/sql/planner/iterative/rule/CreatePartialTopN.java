@@ -42,14 +42,16 @@ public class CreatePartialTopN
         TopNNode partial = new TopNNode(
                 context.getIdAllocator().getNextId(),
                 single.getSource(),
-                single.getCount(),
+                single.getOffset(),
+                single.getLimit(),
                 single.getOrderingScheme(),
                 PARTIAL);
 
         return Result.ofPlanNode(new TopNNode(
                 context.getIdAllocator().getNextId(),
                 partial,
-                single.getCount(),
+                single.getOffset(),
+                single.getLimit(),
                 single.getOrderingScheme(),
                 FINAL));
     }

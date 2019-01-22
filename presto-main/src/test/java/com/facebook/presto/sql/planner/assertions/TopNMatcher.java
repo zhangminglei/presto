@@ -54,7 +54,7 @@ public class TopNMatcher
         checkState(shapeMatches(node), "Plan testing framework error: shapeMatches returned false in detailMatches in %s", this.getClass().getName());
         TopNNode topNNode = (TopNNode) node;
 
-        if (topNNode.getCount() != count) {
+        if (topNNode.getLimit() != count) {
             return NO_MATCH;
         }
 

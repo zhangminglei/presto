@@ -73,11 +73,13 @@ public class GroupedTopNBuilder
     public GroupedTopNBuilder(
             List<Type> sourceTypes,
             PageWithPositionComparator comparator,
+            int offset,
             int topN,
             boolean produceRowNumber,
             GroupByHash groupByHash)
     {
         this.sourceTypes = requireNonNull(sourceTypes, "sourceTypes is null");
+        checkArgument(offset >= 0, "offset must be >= 0");
         checkArgument(topN > 0, "topN must be > 0");
         this.topN = topN;
         this.produceRowNumber = produceRowNumber;

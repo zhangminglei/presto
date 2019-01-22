@@ -962,7 +962,8 @@ public class LocalExecutionPlanner
                     context.getNextOperatorId(),
                     node.getId(),
                     source.getTypes(),
-                    (int) node.getCount(),
+                    (int) node.getOffset(),
+                    (int) node.getLimit(),
                     sortChannels,
                     sortOrders);
 
@@ -1006,7 +1007,7 @@ public class LocalExecutionPlanner
         {
             PhysicalOperation source = node.getSource().accept(this, context);
 
-            OperatorFactory operatorFactory = new LimitOperatorFactory(context.getNextOperatorId(), node.getId(), node.getCount());
+            OperatorFactory operatorFactory = new LimitOperatorFactory(context.getNextOperatorId(), node.getId(), node.getOffset(), node.getLimit(), node.isPartial());
             return new PhysicalOperation(operatorFactory, source.getLayout(), context, source);
         }
 

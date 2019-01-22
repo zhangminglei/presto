@@ -499,7 +499,8 @@ class AstBuilder
                 visitIfPresent(context.with(), With.class),
                 body.getQueryBody(),
                 body.getOrderBy(),
-                body.getLimit());
+                body.getLimit(),
+                body.getOffset());
     }
 
     @Override
@@ -552,7 +553,9 @@ class AstBuilder
                             query.getGroupBy(),
                             query.getHaving(),
                             orderBy,
+                            getTextIfPresent(context.offset),
                             getTextIfPresent(context.limit)),
+                    Optional.empty(),
                     Optional.empty(),
                     Optional.empty());
         }
@@ -562,6 +565,7 @@ class AstBuilder
                 Optional.empty(),
                 term,
                 orderBy,
+                getTextIfPresent(context.offset),
                 getTextIfPresent(context.limit));
     }
 
@@ -591,6 +595,7 @@ class AstBuilder
                 visitIfPresent(context.where, Expression.class),
                 visitIfPresent(context.groupBy(), GroupBy.class),
                 visitIfPresent(context.having, Expression.class),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty());
     }
@@ -771,7 +776,7 @@ class AstBuilder
     public Node visitShowStatsForQuery(SqlBaseParser.ShowStatsForQueryContext context)
     {
         QuerySpecification specification = (QuerySpecification) visitQuerySpecification(context.querySpecification());
-        Query query = new Query(Optional.empty(), specification, Optional.empty(), Optional.empty());
+        Query query = new Query(Optional.empty(), specification, Optional.empty(), Optional.empty(), Optional.empty());
         return new ShowStats(Optional.of(getLocation(context)), new TableSubquery(query));
     }
 

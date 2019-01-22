@@ -31,24 +31,37 @@ public class LimitNode
         extends PlanNode
 {
     private final PlanNode source;
-    private final long count;
+    private final long offset;
+    private final long limit;
     private final boolean partial;
+
+    public LimitNode(
+            PlanNodeId id,
+            PlanNode source,
+            long count,
+            boolean partial)
+    {
+        this(id, source, 0, count, partial);
+    }
 
     @JsonCreator
     public LimitNode(
             @JsonProperty("id") PlanNodeId id,
             @JsonProperty("source") PlanNode source,
-            @JsonProperty("count") long count,
+            @JsonProperty("offset") long offset,
+            @JsonProperty("limit") long limit,
             @JsonProperty("partial") boolean partial)
     {
         super(id);
         this.partial = partial;
 
         requireNonNull(source, "source is null");
-        checkArgument(count >= 0, "count must be greater than or equal to zero");
+        checkArgument(offset >= 0, "offset must be greater than or equal to zero");
+        checkArgument(limit >= 0, "count must be greater than or equal to zero");
 
         this.source = source;
-        this.count = count;
+        this.offset = offset;
+        this.limit = limit;
     }
 
     @Override
@@ -64,9 +77,15 @@ public class LimitNode
     }
 
     @JsonProperty
-    public long getCount()
+    public long getLimit()
     {
-        return count;
+        return limit;
+    }
+
+    @JsonProperty
+    public long getOffset()
+    {
+        return offset;
     }
 
     @JsonProperty
@@ -90,6 +109,6 @@ public class LimitNode
     @Override
     public PlanNode replaceChildren(List<PlanNode> newChildren)
     {
-        return new LimitNode(getId(), Iterables.getOnlyElement(newChildren), count, isPartial());
+        return new LimitNode(getId(), Iterables.getOnlyElement(newChildren), offset, limit, isPartial());
     }
 }

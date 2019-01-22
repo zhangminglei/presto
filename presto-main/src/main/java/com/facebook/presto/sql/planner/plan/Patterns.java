@@ -209,7 +209,7 @@ public class Patterns
     {
         public static Property<LimitNode, Long> count()
         {
-            return property("count", LimitNode::getCount);
+            return property("limit", LimitNode::getLimit);
         }
     }
 

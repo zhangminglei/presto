@@ -57,12 +57,19 @@ public class LimitPushDown
     private static class LimitContext
     {
         private final long count;
+        private final long offset;
         private final boolean partial;
 
-        public LimitContext(long count, boolean partial)
+        public LimitContext(long offset, long count, boolean partial)
         {
+            this.offset = offset;
             this.count = count;
             this.partial = partial;
+        }
+
+        public long getOffset()
+        {
+            return offset;
         }
 
         public long getCount()
@@ -79,6 +86,7 @@ public class LimitPushDown
         public String toString()
         {
             return toStringHelper(this)
+                    .add("offset", offset)
                     .add("count", count)
                     .add("partial", partial)
                     .toString();
@@ -103,7 +111,7 @@ public class LimitPushDown
             LimitContext limit = context.get();
             if (limit != null) {
                 // Drop in a LimitNode b/c we cannot push our limit down any further
-                rewrittenNode = new LimitNode(idAllocator.getNextId(), rewrittenNode, limit.getCount(), limit.isPartial());
+                rewrittenNode = new LimitNode(idAllocator.getNextId(), rewrittenNode, limit.getCount(), limit.getOffset(), limit.isPartial());
             }
             return rewrittenNode;
         }
@@ -111,7 +119,7 @@ public class LimitPushDown
         @Override
         public PlanNode visitLimit(LimitNode node, RewriteContext<LimitContext> context)
         {
-            long count = node.getCount();
+            long count = node.getLimit();
             if (context.get() != null) {
                 count = Math.min(count, context.get().getCount());
             }
@@ -124,7 +132,7 @@ public class LimitPushDown
             }
 
             // default visitPlan logic will insert the limit node
-            return context.rewrite(node.getSource(), new LimitContext(count, false));
+            return context.rewrite(node.getSource(), new LimitContext(node.getOffset(), count, false));
         }
 
         @Override
@@ -143,7 +151,7 @@ public class LimitPushDown
             PlanNode rewrittenNode = context.defaultRewrite(node);
             if (limit != null) {
                 // Drop in a LimitNode b/c limits cannot be pushed through aggregations
-                rewrittenNode = new LimitNode(idAllocator.getNextId(), rewrittenNode, limit.getCount(), limit.isPartial());
+                rewrittenNode = new LimitNode(idAllocator.getNextId(), rewrittenNode, limit.getOffset(), limit.getCount(), limit.isPartial());
             }
             return rewrittenNode;
         }
@@ -174,11 +182,12 @@ public class LimitPushDown
                 return node;
             }
 
-            long count = node.getCount();
+            long offset = node.getOffset();
+            long count = node.getLimit();
             if (limit != null) {
                 count = Math.min(count, limit.getCount());
             }
-            return new TopNNode(node.getId(), rewrittenSource, count, node.getOrderingScheme(), node.getStep());
+            return new TopNNode(node.getId(), rewrittenSource, offset, count, node.getOrderingScheme(), node.getStep());
         }
 
         @Override
@@ -189,7 +198,7 @@ public class LimitPushDown
 
             PlanNode rewrittenSource = context.rewrite(node.getSource());
             if (limit != null) {
-                return new TopNNode(node.getId(), rewrittenSource, limit.getCount(), node.getOrderingScheme(), TopNNode.Step.SINGLE);
+                return new TopNNode(node.getId(), rewrittenSource, limit.getOffset(), limit.getCount(), node.getOrderingScheme(), TopNNode.Step.SINGLE);
             }
             else if (rewrittenSource != node.getSource()) {
                 return new SortNode(node.getId(), rewrittenSource, node.getOrderingScheme());
@@ -204,7 +213,7 @@ public class LimitPushDown
 
             LimitContext childLimit = null;
             if (limit != null) {
-                childLimit = new LimitContext(limit.getCount(), true);
+                childLimit = new LimitContext(limit.getOffset(), limit.getCount(), true);
             }
 
             List<PlanNode> sources = new ArrayList<>();

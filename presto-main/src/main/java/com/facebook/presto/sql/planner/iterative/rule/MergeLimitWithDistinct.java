@@ -60,7 +60,7 @@ public class MergeLimitWithDistinct
                 new DistinctLimitNode(
                         parent.getId(),
                         child.getSource(),
-                        parent.getCount(),
+                        parent.getLimit(),
                         false,
                         child.getGroupingKeys(),
                         child.getHashSymbol()));

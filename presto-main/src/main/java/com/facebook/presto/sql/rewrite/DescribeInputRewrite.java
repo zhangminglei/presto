@@ -114,9 +114,11 @@ final class DescribeInputRewrite
             // return the positions and types of all parameters
             Row[] rows = parameters.stream().map(parameter -> createDescribeInputRow(parameter, analysis)).toArray(Row[]::new);
             Optional<String> limit = Optional.empty();
+            Optional<String> offset = Optional.empty();
             if (rows.length == 0) {
                 rows = new Row[] {row(new NullLiteral(), new NullLiteral())};
                 limit = Optional.of("0");
+                offset = Optional.of("0");
             }
 
             return simpleQuery(
@@ -129,7 +131,8 @@ final class DescribeInputRewrite
                     Optional.empty(),
                     Optional.empty(),
                     Optional.of(ordering(ascending("Position"))),
-                    limit);
+                    limit,
+                    offset);
         }
 
         private static Row createDescribeInputRow(Parameter parameter, Analysis queryAnalysis)

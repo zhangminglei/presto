@@ -638,7 +638,7 @@ public class PlanPrinter
         @Override
         public Void visitLimit(LimitNode node, Integer indent)
         {
-            print(indent, "- Limit%s[%s] => [%s]", node.isPartial() ? "Partial" : "", node.getCount(), formatOutputs(node.getOutputSymbols()));
+            print(indent, "- Limit%s[%s] => [%s]", node.isPartial() ? "Partial" : "", node.getLimit(), formatOutputs(node.getOutputSymbols()));
             printPlanNodesStatsAndCost(indent + 2, node);
             printStats(indent + 2, node.getId());
             return processChildren(node, indent + 1);
@@ -1032,7 +1032,7 @@ public class PlanPrinter
 
             print(indent, "- TopN%s[%s by (%s)] => [%s]",
                     node.getStep() == TopNNode.Step.PARTIAL ? "Partial" : "",
-                    node.getCount(),
+                    node.getLimit(),
                     Joiner.on(", ").join(keys),
                     formatOutputs(node.getOutputSymbols()));
             printPlanNodesStatsAndCost(indent + 2, node);

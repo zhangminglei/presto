@@ -144,9 +144,9 @@ public final class QueryCardinalityUtil
         public Range<Long> visitLimit(LimitNode node, Void context)
         {
             Range<Long> sourceCardinalityRange = node.getSource().accept(this, null);
-            long upper = node.getCount();
+            long upper = node.getLimit();
             if (sourceCardinalityRange.hasUpperBound()) {
-                upper = min(sourceCardinalityRange.upperEndpoint(), node.getCount());
+                upper = min(sourceCardinalityRange.upperEndpoint(), node.getLimit());
             }
             long lower = min(upper, sourceCardinalityRange.lowerEndpoint());
             return Range.closed(lower, upper);

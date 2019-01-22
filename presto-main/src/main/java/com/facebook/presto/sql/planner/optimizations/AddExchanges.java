@@ -463,7 +463,7 @@ public class AddExchanges
 
             if (!child.getProperties().isSingleNode()) {
                 child = withDerivedProperties(
-                        new LimitNode(idAllocator.getNextId(), child.getNode(), node.getCount(), true),
+                        new LimitNode(idAllocator.getNextId(), child.getNode(), node.getOffset(), node.getLimit(), true),
                         child.getProperties());
 
                 child = withDerivedProperties(

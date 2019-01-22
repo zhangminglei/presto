@@ -393,7 +393,7 @@ public final class GraphvizPrinter
         public Void visitTopN(final TopNNode node, Void context)
         {
             Iterable<String> keys = Iterables.transform(node.getOrderingScheme().getOrderBy(), input -> input + " " + node.getOrderingScheme().getOrdering(input));
-            printNode(node, format("TopN[%s]", node.getCount()), Joiner.on(", ").join(keys), NODE_COLORS.get(NodeType.TOPN));
+            printNode(node, format("TopN[%s]", node.getLimit()), Joiner.on(", ").join(keys), NODE_COLORS.get(NodeType.TOPN));
             return node.getSource().accept(this, context);
         }
 
@@ -415,7 +415,7 @@ public final class GraphvizPrinter
         @Override
         public Void visitLimit(LimitNode node, Void context)
         {
-            printNode(node, format("Limit[%s]", node.getCount()), NODE_COLORS.get(NodeType.LIMIT));
+            printNode(node, format("Limit[%s]", node.getLimit()), NODE_COLORS.get(NodeType.LIMIT));
             return node.getSource().accept(this, context);
         }
 

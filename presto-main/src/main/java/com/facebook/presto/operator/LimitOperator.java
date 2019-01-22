@@ -29,14 +29,18 @@ public class LimitOperator
     {
         private final int operatorId;
         private final PlanNodeId planNodeId;
+        private final long offset;
         private final long limit;
         private boolean closed;
+        private final boolean partial;
 
-        public LimitOperatorFactory(int operatorId, PlanNodeId planNodeId, long limit)
+        public LimitOperatorFactory(int operatorId, PlanNodeId planNodeId, long offset, long limit, boolean partial)
         {
             this.operatorId = operatorId;
             this.planNodeId = requireNonNull(planNodeId, "planNodeId is null");
+            this.offset = offset;
             this.limit = limit;
+            this.partial = partial;
         }
 
         @Override
@@ -44,7 +48,13 @@ public class LimitOperator
         {
             checkState(!closed, "Factory is already closed");
             OperatorContext operatorContext = driverContext.addOperatorContext(operatorId, planNodeId, LimitOperator.class.getSimpleName());
-            return new LimitOperator(operatorContext, limit);
+
+            if (partial) {
+                return new LimitOperator(operatorContext, 0, offset + limit);
+            }
+            else {
+                return new LimitOperator(operatorContext, offset, limit);
+            }
         }
 
         @Override
@@ -56,18 +66,21 @@ public class LimitOperator
         @Override
         public OperatorFactory duplicate()
         {
-            return new LimitOperatorFactory(operatorId, planNodeId, limit);
+            return new LimitOperatorFactory(operatorId, planNodeId, offset, limit, partial);
         }
     }
 
     private final OperatorContext operatorContext;
     private Page nextPage;
+    private long offset;
     private long remainingLimit;
 
-    public LimitOperator(OperatorContext operatorContext, long limit)
+    public LimitOperator(OperatorContext operatorContext, long offset, long limit)
     {
         this.operatorContext = requireNonNull(operatorContext, "operatorContext is null");
 
+        checkArgument(offset >= 0, "offset must be at least zero");
+        this.offset = offset;
         checkArgument(limit >= 0, "limit must be at least zero");
         this.remainingLimit = limit;
     }
@@ -101,18 +114,27 @@ public class LimitOperator
     {
         checkState(needsInput());
 
-        if (page.getPositionCount() <= remainingLimit) {
-            remainingLimit -= page.getPositionCount();
-            nextPage = page;
+        if (offset >= page.getPositionCount()) {
+            offset -= page.getPositionCount();
         }
         else {
-            Block[] blocks = new Block[page.getChannelCount()];
-            for (int channel = 0; channel < page.getChannelCount(); channel++) {
-                Block block = page.getBlock(channel);
-                blocks[channel] = block.getRegion(0, (int) remainingLimit);
+            if (offset == 0 && remainingLimit >= page.getPositionCount()) {
+                nextPage = page;
+                remainingLimit -= page.getPositionCount();
             }
-            nextPage = new Page((int) remainingLimit, blocks);
-            remainingLimit = 0;
+            else {
+                long startPos = (int) (page.getPositionCount() - offset);
+                long cntInPage = remainingLimit >= startPos ? startPos : remainingLimit;
+
+                Block[] blocks = new Block[page.getChannelCount()];
+                for (int channel = 0; channel < page.getChannelCount(); channel++) {
+                    Block block = page.getBlock(channel);
+                    blocks[channel] = block.getRegion((int) offset, (int) cntInPage);
+                }
+                nextPage = new Page((int) cntInPage, blocks);
+                remainingLimit -= cntInPage;
+                offset = 0;
+            }
         }
     }
 

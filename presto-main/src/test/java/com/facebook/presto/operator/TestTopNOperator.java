@@ -89,13 +89,17 @@ public class TestTopNOperator
                 0,
                 new PlanNodeId("test"),
                 ImmutableList.of(BIGINT, DOUBLE),
+                3,
                 2,
                 ImmutableList.of(0),
                 ImmutableList.of(DESC_NULLS_LAST));
 
         MaterializedResult expected = resultBuilder(driverContext.getSession(), BIGINT, DOUBLE)
-                .row(6L, 0.6)
-                .row(5L, 0.5)
+//                .row(6L, 0.6)
+//                .row(5L, 0.5)
+//                .row(4L, 0.4)
+                .row(4L, 0.41)
+                .row(2L, 0.2)
                 .build();
 
         assertOperatorEquals(operatorFactory, driverContext, input, expected);
@@ -120,6 +124,7 @@ public class TestTopNOperator
                 0,
                 new PlanNodeId("test"),
                 ImmutableList.of(VARCHAR, BIGINT),
+                0,
                 3,
                 ImmutableList.of(0, 1),
                 ImmutableList.of(DESC_NULLS_LAST, DESC_NULLS_LAST));
@@ -153,6 +158,7 @@ public class TestTopNOperator
                 0,
                 new PlanNodeId("test"),
                 ImmutableList.of(BIGINT, DOUBLE),
+                0,
                 2,
                 ImmutableList.of(0),
                 ImmutableList.of(ASC_NULLS_LAST));
@@ -175,6 +181,7 @@ public class TestTopNOperator
                 0,
                 new PlanNodeId("test"),
                 ImmutableList.of(BIGINT),
+                0,
                 0,
                 ImmutableList.of(0),
                 ImmutableList.of(DESC_NULLS_LAST));
@@ -202,6 +209,7 @@ public class TestTopNOperator
                 0,
                 new PlanNodeId("test"),
                 ImmutableList.of(BIGINT),
+                0,
                 100,
                 ImmutableList.of(0),
                 ImmutableList.of(ASC_NULLS_LAST));

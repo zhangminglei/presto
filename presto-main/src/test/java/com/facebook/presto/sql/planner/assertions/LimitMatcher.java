@@ -39,7 +39,7 @@ public class LimitMatcher
         }
 
         LimitNode limitNode = (LimitNode) node;
-        return limitNode.getCount() == limit;
+        return limitNode.getLimit() == limit;
     }
 
     @Override

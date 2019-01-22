@@ -118,13 +118,13 @@ public final class DistinctOutputQueryUtil
         @Override
         public Boolean visitLimit(LimitNode node, Void context)
         {
-            return node.getCount() <= 1;
+            return node.getLimit() <= 1;
         }
 
         @Override
         public Boolean visitTopN(TopNNode node, Void context)
         {
-            return node.getCount() <= 1;
+            return node.getLimit() <= 1;
         }
     }
 }

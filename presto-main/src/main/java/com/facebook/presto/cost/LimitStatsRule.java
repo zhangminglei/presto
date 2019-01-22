@@ -43,13 +43,13 @@ public class LimitStatsRule
     protected Optional<PlanNodeStatsEstimate> doCalculate(LimitNode node, StatsProvider statsProvider, Lookup lookup, Session session, TypeProvider types)
     {
         PlanNodeStatsEstimate sourceStats = statsProvider.getStats(node.getSource());
-        if (sourceStats.getOutputRowCount() <= node.getCount()) {
+        if (sourceStats.getOutputRowCount() <= node.getLimit()) {
             return Optional.of(sourceStats);
         }
 
         // LIMIT actually limits (or when there was no row count estimated for source)
         return Optional.of(PlanNodeStatsEstimate.buildFrom(sourceStats)
-                .setOutputRowCount(node.getCount())
+                .setOutputRowCount(node.getLimit())
                 .build());
     }
 }

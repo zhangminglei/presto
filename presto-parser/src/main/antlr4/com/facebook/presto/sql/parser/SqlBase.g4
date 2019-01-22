@@ -130,6 +130,7 @@ property
 queryNoWith:
       queryTerm
       (ORDER BY sortItem (',' sortItem)*)?
+      (OFFSET offset=INTEGER_VALUE)?
       (LIMIT limit=(INTEGER_VALUE | ALL))?
     ;
 
@@ -583,6 +584,7 @@ NOT: 'NOT';
 NULL: 'NULL';
 NULLIF: 'NULLIF';
 NULLS: 'NULLS';
+OFFSET: 'OFFSET';
 ON: 'ON';
 ONLY: 'ONLY';
 OPTION: 'OPTION';

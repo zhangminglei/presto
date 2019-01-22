@@ -41,26 +41,30 @@ public class TopNNode
     }
 
     private final PlanNode source;
-    private final long count;
+    private final long offset;
+    private final long limit;
     private final OrderingScheme orderingScheme;
     private final Step step;
 
     @JsonCreator
     public TopNNode(@JsonProperty("id") PlanNodeId id,
             @JsonProperty("source") PlanNode source,
-            @JsonProperty("count") long count,
+            @JsonProperty("offset") long offset,
+            @JsonProperty("limit") long limit,
             @JsonProperty("orderingScheme") OrderingScheme orderingScheme,
             @JsonProperty("step") Step step)
     {
         super(id);
 
         requireNonNull(source, "source is null");
-        checkArgument(count >= 0, "count must be positive");
-        checkCondition(count <= Integer.MAX_VALUE, NOT_SUPPORTED, "ORDER BY LIMIT > %s is not supported", Integer.MAX_VALUE);
+        checkArgument(offset >= 0, "offset must be positive");
+        checkArgument(limit >= 0, "count must be positive");
+        checkCondition(limit <= Integer.MAX_VALUE, NOT_SUPPORTED, "ORDER BY LIMIT > %s is not supported", Integer.MAX_VALUE);
         requireNonNull(orderingScheme, "orderingScheme is null");
 
         this.source = source;
-        this.count = count;
+        this.offset = offset;
+        this.limit = limit;
         this.orderingScheme = orderingScheme;
         this.step = requireNonNull(step, "step is null");
     }
@@ -83,10 +87,16 @@ public class TopNNode
         return source.getOutputSymbols();
     }
 
-    @JsonProperty("count")
-    public long getCount()
+    @JsonProperty("offset")
+    public long getOffset()
     {
-        return count;
+        return offset;
+    }
+
+    @JsonProperty("limit")
+    public long getLimit()
+    {
+        return limit;
     }
 
     @JsonProperty("orderingScheme")
@@ -110,6 +120,6 @@ public class TopNNode
     @Override
     public PlanNode replaceChildren(List<PlanNode> newChildren)
     {
-        return new TopNNode(getId(), Iterables.getOnlyElement(newChildren), count, orderingScheme, step);
+        return new TopNNode(getId(), Iterables.getOnlyElement(newChildren), offset, limit, orderingScheme, step);
     }
 }

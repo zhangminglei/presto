@@ -124,12 +124,12 @@ public class WindowFilterPushDown
         public PlanNode visitLimit(LimitNode node, RewriteContext<Void> context)
         {
             // Operators can handle MAX_VALUE rows per page, so do not optimize if count is greater than this value
-            if (node.getCount() > Integer.MAX_VALUE) {
+            if (node.getLimit() > Integer.MAX_VALUE) {
                 return context.defaultRewrite(node);
             }
 
             PlanNode source = context.rewrite(node.getSource());
-            int limit = toIntExact(node.getCount());
+            int limit = toIntExact(node.getLimit());
             if (source instanceof RowNumberNode) {
                 RowNumberNode rowNumberNode = mergeLimit(((RowNumberNode) source), limit);
                 if (rowNumberNode.getPartitionBy().isEmpty()) {

@@ -42,6 +42,7 @@ public class Top100Benchmark
                 1,
                 new PlanNodeId("test"),
                 tableScanTypes,
+                0,
                 100,
                 ImmutableList.of(0),
                 ImmutableList.of(ASC_NULLS_LAST));

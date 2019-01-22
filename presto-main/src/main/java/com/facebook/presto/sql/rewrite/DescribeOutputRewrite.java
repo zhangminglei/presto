@@ -104,11 +104,13 @@ final class DescribeOutputRewrite
             Analysis analysis = analyzer.analyze(statement, true);
 
             Optional<String> limit = Optional.empty();
+            Optional<String> offset = Optional.empty();
             Row[] rows = analysis.getRootScope().getRelationType().getVisibleFields().stream().map(field -> createDescribeOutputRow(field, analysis)).toArray(Row[]::new);
             if (rows.length == 0) {
                 NullLiteral nullLiteral = new NullLiteral();
                 rows = new Row[] {row(nullLiteral, nullLiteral, nullLiteral, nullLiteral, nullLiteral, nullLiteral, nullLiteral)};
                 limit = Optional.of("0");
+                offset = Optional.of("0");
             }
             return simpleQuery(
                     selectList(
@@ -127,7 +129,8 @@ final class DescribeOutputRewrite
                     Optional.empty(),
                     Optional.empty(),
                     Optional.empty(),
-                    limit);
+                    limit,
+                    offset);
         }
 
         private static Row createDescribeOutputRow(Field field, Analysis analysis)
